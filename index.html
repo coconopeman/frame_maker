@@ -70,7 +70,7 @@
             font-weight: bold;
             font-size: 1.25rem;
             flex-shrink: 0;
-            margin-bottom: -1px; /* 흰 선 방지 */
+            margin-bottom: -1px; 
             position: relative;
             z-index: 1;
         }
@@ -83,15 +83,22 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-top: -1px; /* 흰 선 방지 */
+            margin-top: -1px; 
             position: relative;
             z-index: 1;
         }
+
+        /* 한글 입력(IME) 개선을 위한 가이드 문구 CSS 수정 */
         [contenteditable]:empty:before {
             content: attr(placeholder);
             color: var(--text-light);
             opacity: 0.4;
             cursor: text;
+            pointer-events: none; /* 가이드 문구가 클릭을 방해하지 않도록 설정 */
+        }
+        /* 입력 중(Focus)일 때는 가이드 문구를 즉시 제거하여 한글 조합 방해 차단 */
+        [contenteditable]:focus:before {
+            content: "";
         }
         
         .color-picker-input {
@@ -375,5 +382,4 @@
         }
     </script>
 </body>
-
 </html>
