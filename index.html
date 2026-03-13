@@ -123,7 +123,7 @@
             background: none;
         }
         
-        /* 컬러피커 높이 조절 (40px -> 30px) */
+        /* 컬러피커 높이 조절 */
         .color-swatch-container {
             position: relative;
             height: 30px;
@@ -388,7 +388,14 @@
                     backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--body-bg'),
                     scale: 2, 
                     useCORS: true,
-                    logging: false
+                    logging: false,
+                    onclone: (clonedDoc) => {
+                        // 저장용 이미지에서만 모든 텍스트 요소를 위로 4px 보정
+                        const textElements = clonedDoc.querySelectorAll('header div, .top-text-bar, .bottom-desc-bar, [contenteditable]');
+                        textElements.forEach(el => {
+                            el.style.transform = 'translateY(-4px)';
+                        });
+                    }
                 });
                 const link = document.createElement('a');
                 link.download = 'nuts_sheet_' + new Date().getTime() + '.png';
