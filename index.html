@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>심플 넛츠메이커</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Cropper.js 라이브러리 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <!-- html2canvas 라이브러리 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -21,6 +23,7 @@
             transition: background-color 0.2s;
         }
 
+        /* 라운딩 통일 (3px) */
         .rounded, .rounded-t, .rounded-b, .modal-content, header, footer, .color-text-set, .group-container {
             border-radius: 3px !important;
         }
@@ -59,58 +62,44 @@
             border: none !important;
         }
 
-        /* 텍스트 바 정렬 방식: Absolute 방식 (가장 강력한 중앙 정렬) */
         .top-text-bar {
-            position: relative;
-            width: 100%;
             height: 60px;
-            margin-bottom: -1px;
-            z-index: 1;
-            overflow: hidden;
-        }
-        
-        /* 텍스트 바 내부 입력 영역 */
-        .top-text-inner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 95%;
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-weight: bold;
             font-size: 1.25rem;
-            line-height: 1.1 !important;
-            outline: none;
-            white-space: nowrap; /* 한 줄 유지 권장 */
-        }
-
-        .bottom-desc-bar {
+            flex-shrink: 0;
+            margin-bottom: -1px; 
             position: relative;
-            width: 100%;
-            min-height: 50px;
-            margin-top: -1px;
             z-index: 1;
-            overflow: hidden;
-        }
-
-        .bottom-desc-inner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 95%;
-            text-align: center;
-            font-size: 0.875rem;
             line-height: 1.2;
-            outline: none;
+        }
+        .bottom-desc-bar {
+            min-height: 50px;
+            padding: 10px;
+            font-size: 0.875rem;
+            font-style: normal;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: -1px; 
+            position: relative;
+            z-index: 1;
+            line-height: 1.2;
         }
 
+        /* 한글 입력(IME) 개선 */
         [contenteditable]:empty:before {
             content: attr(placeholder);
             color: var(--text-light);
             opacity: 0.4;
             cursor: text;
             pointer-events: none;
+        }
+        [contenteditable]:focus:before {
+            content: "";
         }
         
         .color-picker-input {
@@ -134,9 +123,10 @@
             background: none;
         }
         
+        /* 컬러피커 높이 조절 (40px -> 30px) */
         .color-swatch-container {
             position: relative;
-            height: 40px;
+            height: 30px;
             background-color: #00ff00;
             margin-bottom: -1px;
             z-index: 1;
@@ -185,32 +175,24 @@
             overflow: hidden;
         }
 
-        /* 메인 상단 헤더: Absolute 정렬 */
         header {
             background-color: var(--bg-dark) !important;
-            position: relative;
-            width: 100%;
-            height: 80px;
-            margin-bottom: 1rem;
-            overflow: hidden;
-        }
-        header div.header-inner {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 95%;
+            display: block !important;
+            padding: 28px 20px !important;
+            min-height: 80px;
             text-align: center;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: white;
-            line-height: 1.1 !important;
-            outline: none;
+        }
+        header div {
+            display: inline-block;
+            vertical-align: middle;
+            line-height: 1.2;
+            width: 100%;
         }
     </style>
 </head>
 <body class="p-6 font-sans">
 
+    <!-- 크롭 모달 -->
     <div id="cropModal">
         <div class="modal-content">
             <h3 class="text-lg font-bold mb-4">이미지 자르기</h3>
@@ -225,6 +207,8 @@
     </div>
 
     <div class="max-w-[1300px] mx-auto space-y-4">
+        
+        <!-- 커스텀 설정 바 -->
         <div id="config-bar" class="bg-white p-3 border flex flex-wrap items-center justify-center gap-6 mb-4 text-xs font-bold text-gray-600 rounded">
             <div class="flex items-center gap-2">
                 <span>영역 색상</span>
@@ -244,9 +228,10 @@
             </div>
         </div>
 
+        <!-- 이미지로 저장될 영역 -->
         <div id="capture-area">
-            <header class="bg-dark-custom">
-                <div contenteditable="true" placeholder="캐릭터 이름 | 키cm | 기타내용" class="header-inner"></div>
+            <header class="bg-dark-custom p-5 mb-4">
+                <div contenteditable="true" placeholder="캐릭터 이름 | 키cm | 기타내용" class="text-white text-2xl font-bold outline-none"></div>
             </header>
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-stretch">
@@ -259,36 +244,34 @@
                     <div class="grid grid-cols-4 gap-2 shrink-0 mb-1">
                         <div class="color-text-set group-container">
                             <div class="color-swatch-container"><input type="color" value="#00ff00" class="color-picker-main" oninput="this.parentElement.style.backgroundColor = this.value"></div>
-                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[10px] text-center py-1 outline-none no-round"></div>
+                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[13px] text-center py-2 outline-none no-round"></div>
                         </div>
                         <div class="color-text-set group-container">
                             <div class="color-swatch-container"><input type="color" value="#00ff00" class="color-picker-main" oninput="this.parentElement.style.backgroundColor = this.value"></div>
-                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[10px] text-center py-1 outline-none no-round"></div>
+                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[13px] text-center py-2 outline-none no-round"></div>
                         </div>
                         <div class="color-text-set group-container">
                             <div class="color-swatch-container"><input type="color" value="#00ff00" class="color-picker-main" oninput="this.parentElement.style.backgroundColor = this.value"></div>
-                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[10px] text-center py-1 outline-none no-round"></div>
+                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[13px] text-center py-2 outline-none no-round"></div>
                         </div>
                         <div class="color-text-set group-container">
                             <div class="color-swatch-container"><input type="color" value="#00ff00" class="color-picker-main" oninput="this.parentElement.style.backgroundColor = this.value"></div>
-                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[10px] text-center py-1 outline-none no-round"></div>
+                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[13px] text-center py-2 outline-none no-round"></div>
                         </div>
                     </div>
 
+                    <!-- SD 세트 -->
                     <div class="flex flex-col shrink-0 mb-1 rounded overflow-hidden group-container">
-                        <div class="top-text-bar no-round" style="height: 40px;">
-                            <div contenteditable="true" placeholder="SD" class="top-text-inner" style="font-size: 1rem;"></div>
-                        </div>
+                        <div contenteditable="true" placeholder="SD" class="top-text-bar no-round" style="height: 40px; font-size: 1rem;"></div>
                         <div class="image-slot image-slot-fill no-round" style="height: 228px;" onclick="triggerUpload(this)">
                             <span class="guide-text text-sm">SD이미지</span>
                             <input type="file" class="hidden" accept="image/*" onchange="openCropModal(this)">
                         </div>
                     </div>
 
+                    <!-- 캐릭터 특징 세트 -->
                     <div class="flex flex-col flex-grow rounded overflow-hidden group-container">
-                        <div class="top-text-bar no-round">
-                            <div contenteditable="true" placeholder="캐릭터 특징" class="top-text-inner"></div>
-                        </div>
+                        <div contenteditable="true" placeholder="캐릭터 특징" class="top-text-bar no-round"></div>
                         <div contenteditable="true" placeholder="특징을 입력하세요." class="bg-dark-custom p-3 text-sm outline-none flex-grow min-h-[100px] no-round"></div>
                     </div>
                 </div>
@@ -302,29 +285,21 @@
 
                 <div class="flex flex-col gap-4">
                     <div class="flex flex-col bg-dark-custom overflow-hidden shrink-0 rounded group-container">
-                        <div class="top-text-bar no-round">
-                            <div contenteditable="true" placeholder="동물화" class="top-text-inner"></div>
-                        </div>
+                        <div contenteditable="true" placeholder="동물화" class="top-text-bar no-round"></div>
                         <div class="image-slot image-slot-fill h-52 no-round" onclick="triggerUpload(this)">
                             <span class="guide-text text-sm">동물화</span>
                             <input type="file" class="hidden" accept="image/*" onchange="openCropModal(this)">
                         </div>
-                        <div class="bottom-desc-bar no-round">
-                            <div contenteditable="true" placeholder="하단 설명..." class="bottom-desc-inner"></div>
-                        </div>
+                        <div contenteditable="true" placeholder="하단 설명..." class="bottom-desc-bar no-round"></div>
                     </div>
 
                     <div class="flex flex-col bg-dark-custom flex-grow overflow-hidden shrink-0 rounded group-container">
-                        <div class="top-text-bar no-round">
-                            <div contenteditable="true" placeholder="MD" class="top-text-inner"></div>
-                        </div>
+                        <div contenteditable="true" placeholder="MD" class="top-text-bar no-round"></div>
                         <div class="image-slot image-slot-fill flex-grow no-round" onclick="triggerUpload(this)">
                             <span class="guide-text text-sm">MD</span>
                             <input type="file" class="hidden" accept="image/*" onchange="openCropModal(this)">
                         </div>
-                        <div class="bottom-desc-bar no-round">
-                            <div contenteditable="true" placeholder="하단 설명..." class="bottom-desc-inner"></div>
-                        </div>
+                        <div contenteditable="true" placeholder="하단 설명..." class="bottom-desc-bar no-round"></div>
                     </div>
                 </div>
             </div>
@@ -347,7 +322,7 @@
                 document.getElementById('capture-area').style.backgroundColor = value;
             }
             if (variable === '--bg-dark') {
-                document.querySelectorAll('.group-container, header, .top-text-bar, .bottom-desc-bar').forEach(el => {
+                document.querySelectorAll('.group-container').forEach(el => {
                     el.style.backgroundColor = value;
                 });
             }
@@ -408,26 +383,12 @@
 
         async function saveAsImage() {
             const captureArea = document.getElementById('capture-area');
-            if (document.activeElement) document.activeElement.blur();
-
             try {
                 const canvas = await html2canvas(captureArea, {
                     backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--body-bg'),
                     scale: 2, 
                     useCORS: true,
-                    logging: false,
-                    onclone: (clonedDoc) => {
-                        // 저장 시 모든 텍스트 요소를 강제로 정중앙에 위치시킴
-                        const inners = clonedDoc.querySelectorAll('.header-inner, .top-text-inner, .bottom-desc-inner');
-                        inners.forEach(el => {
-                            el.style.position = 'absolute';
-                            el.style.top = '50%';
-                            el.style.left = '50%';
-                            el.style.transform = 'translate(-50%, -50%)';
-                            el.style.lineHeight = '1';
-                            el.style.margin = '0';
-                        });
-                    }
+                    logging: false
                 });
                 const link = document.createElement('a');
                 link.download = 'nuts_sheet_' + new Date().getTime() + '.png';
