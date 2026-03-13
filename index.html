@@ -416,21 +416,29 @@
                     scale: 2, 
                     useCORS: true,
                     logging: false,
-                    onclone: (clonedDoc) => {
-    const inners = clonedDoc.querySelectorAll('.header-inner, .top-text-inner, .bottom-desc-inner');
-    inners.forEach(el => {
+                   onclone: (clonedDoc) => {
+    const headerInner = clonedDoc.querySelector('.header-inner');
+    if (headerInner) {
+        // html2canvas가 글자 baseline을 다르게 잡는 문제를 수동 보정
+        headerInner.style.position = 'absolute';
+        headerInner.style.top = '50%';
+        headerInner.style.left = '50%';
+        headerInner.style.transform = 'translate(-50%, -55%)'; // ← 50% 대신 55~58% 정도로 내려줌
+        headerInner.style.lineHeight = '1.1';
+        headerInner.style.margin = '0';
+    }
+
+    const others = clonedDoc.querySelectorAll('.top-text-inner, .bottom-desc-inner');
+    others.forEach(el => {
         el.style.position = 'absolute';
         el.style.top = '50%';
         el.style.left = '50%';
         el.style.transform = 'translate(-50%, -50%)';
         el.style.lineHeight = '1.1';
         el.style.margin = '0';
-        el.style.display = 'flex';
-        el.style.alignItems = 'center';
-        el.style.justifyContent = 'center';
-        el.style.height = '100%';
     });
 }
+
 
                 });
                 const link = document.createElement('a');
