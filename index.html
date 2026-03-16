@@ -179,8 +179,8 @@
         }
 
         #capture-area {
-            /* 그라데이션이 중간에서 자연스럽게 섞이도록 조정 */
-            background: linear-gradient(to bottom, var(--body-bg-top) 0%, var(--body-bg-bottom) 100%);
+            /* 그라데이션 시작 지점을 50%로 늦춰 하단색이 더 밑에 깔리도록 수정 */
+            background: linear-gradient(to bottom, var(--body-bg-top) 50%, var(--body-bg-bottom) 100%);
             padding: 20px;
             position: relative;
         }
@@ -204,6 +204,7 @@
             vertical-align: middle;
             line-height: 1.2;
             width: 100%;
+            color: var(--text-light) !important;
         }
 
         input[type=range] {
@@ -259,7 +260,7 @@
 
         <div id="capture-area">
             <header class="bg-dark-custom p-5 mb-4">
-                <div contenteditable="true" placeholder="캐릭터 이름 | 키cm | 기타내용" class="text-white text-2xl font-bold outline-none"></div>
+                <div contenteditable="true" placeholder="캐릭터 이름 | 키cm | 기타내용" class="text-2xl font-bold outline-none"></div>
             </header>
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-stretch">
@@ -342,7 +343,7 @@
         let currentSlot = null;
         let cropper = null;
         let baseRatio = 1;
-        let isBottomManual = false; // 하단 색상을 수동으로 변경했는지 여부
+        let isBottomManual = false; 
 
         function updateTheme(variable, value) {
             document.documentElement.style.setProperty(variable, value);
@@ -359,12 +360,10 @@
             const bottomInput = document.getElementById('bgColorBottom');
 
             if (source === 'top') {
-                // 하단 색상을 수동으로 만지지 않았다면 상단 색상을 따라가게 함 (단색 모드)
                 if (!isBottomManual) {
                     bottomInput.value = topInput.value;
                 }
             } else if (source === 'bottom') {
-                // 하단 색상을 직접 선택하면 수동 모드로 전환
                 isBottomManual = true;
             }
 
@@ -456,7 +455,8 @@
                     logging: false,
                     onclone: (clonedDoc) => {
                         const clonedArea = clonedDoc.getElementById('capture-area');
-                        clonedArea.style.background = `linear-gradient(to bottom, ${top} 0%, ${bottom} 100%)`;
+                        // 저장 이미지용 그라데이션 위치도 동일하게 보정 (50% 100%)
+                        clonedArea.style.background = `linear-gradient(to bottom, ${top} 50%, ${bottom} 100%)`;
                         
                         const textElements = clonedDoc.querySelectorAll('header div, .top-text-bar, .bottom-desc-bar, [contenteditable]');
                         textElements.forEach(el => { el.style.transform = 'translateY(-8px)'; });
