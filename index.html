@@ -5,32 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>심플 넛츠메이커</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Cropper.js 라이브러리 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
-    <!-- html2canvas 라이브러리 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
             --bg-dark: #000000;
             --text-light: #ffffff;
             --border-slot: #ef4444;
-            --body-bg: #f3f4f6;
+            --body-bg-top: #f3f4f6;
+            --body-bg-bottom: #f3f4f6;
         }
 
         body {
-            background-color: var(--body-bg) !important;
+            background-color: var(--body-bg-top) !important;
             transition: background-color 0.2s;
         }
 
-        /* 라운딩 통일 (3px) */
         .rounded, .rounded-t, .rounded-b, .modal-content, header, footer, .color-text-set, .group-container {
-            border-radius: 3px !important;
+            border-radius: 15px !important;
         }
 
-        .no-round {
-            border-radius: 0 !important;
-        }
+        .no-round { border-radius: 0 !important; }
 
         .image-slot {
             border: 1px solid var(--border-slot);
@@ -41,13 +37,33 @@
             overflow: hidden;
             background-color: transparent; 
             position: relative;
-            border-radius: 3px;
+            border-radius: 15px;
         }
+        
+        .image-slot-fill {
+            border: none !important;
+            background-color: var(--bg-dark) !important;
+        }
+
         .image-slot img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
+
+        .image-slot.has-image { border: none !important; }
+
+        .full-body-slot.has-image {
+            z-index: 40;
+            overflow: hidden !important; 
+        }
+        .full-body-slot.has-image img {
+            object-fit: contain;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
         .guide-text {
             color: var(--border-slot);
             opacity: 0.4;
@@ -70,7 +86,6 @@
             font-weight: bold;
             font-size: 1.25rem;
             flex-shrink: 0;
-            margin-bottom: -1px; 
             position: relative;
             z-index: 1;
             line-height: 1.2;
@@ -84,13 +99,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-top: -1px; 
             position: relative;
             z-index: 1;
             line-height: 1.2;
         }
 
-        /* 한글 입력(IME) 개선 */
         [contenteditable]:empty:before {
             content: attr(placeholder);
             color: var(--text-light);
@@ -98,9 +111,7 @@
             cursor: text;
             pointer-events: none;
         }
-        [contenteditable]:focus:before {
-            content: "";
-        }
+        [contenteditable]:focus:before { content: ""; }
         
         .color-picker-input {
             -webkit-appearance: none;
@@ -111,31 +122,36 @@
             background: none;
             display: block;
             padding: 0;
+            outline: none;
         }
         .color-picker-input::-webkit-color-swatch-wrapper { padding: 0; }
-        .color-picker-input::-webkit-color-swatch { border: 1px solid #ccc; border-radius: 3px; }
+        .color-picker-input::-webkit-color-swatch { border: 1px solid #ccc; border-radius: 4px; }
         
         .color-text-set {
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            border: none;
-            background: none;
+            border: 1px solid var(--bg-dark) !important; 
+            background-color: var(--bg-dark) !important;
+            outline: none !important;
+            box-sizing: border-box;
         }
         
-        /* 컬러피커 높이 조절 */
         .color-swatch-container {
             position: relative;
-            height: 30px;
+            height: 28px;
             background-color: #00ff00;
-            margin-bottom: -1px;
-            z-index: 1;
+            z-index: 2;
+            border: none !important;
+            outline: none !important;
         }
         .color-picker-main {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             opacity: 0;
             cursor: pointer;
+            border: none !important;
+            outline: none !important;
         }
 
         #cropModal {
@@ -150,29 +166,29 @@
         .modal-content {
             background: white;
             padding: 20px;
-            max-width: 90%;
+            width: 90%;
+            max-width: 600px;
             max-height: 90%;
             display: flex;
             flex-direction: column;
         }
         .crop-container {
-            max-height: 70vh;
+            height: 400px;
+            background: #eee;
             overflow: hidden;
         }
 
-        .image-slot-fill {
-            background-color: var(--bg-dark) !important;
-            border: none !important;
-        }
-
         #capture-area {
-            background-color: var(--body-bg);
+            /* 그라데이션이 중간에서 자연스럽게 섞이도록 조정 */
+            background: linear-gradient(to bottom, var(--body-bg-top) 0%, var(--body-bg-bottom) 100%);
             padding: 20px;
+            position: relative;
         }
 
         .group-container {
             background-color: var(--bg-dark);
             overflow: hidden;
+            border: none !important;
         }
 
         header {
@@ -181,6 +197,7 @@
             padding: 28px 20px !important;
             min-height: 80px;
             text-align: center;
+            border: none !important;
         }
         header div {
             display: inline-block;
@@ -188,27 +205,39 @@
             line-height: 1.2;
             width: 100%;
         }
+
+        input[type=range] {
+            width: 100%;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body class="p-6 font-sans">
 
-    <!-- 크롭 모달 -->
     <div id="cropModal">
         <div class="modal-content">
-            <h3 class="text-lg font-bold mb-4">이미지 자르기</h3>
-            <div class="crop-container">
+            <h3 class="text-lg font-bold mb-4">이미지 편집 (자르기 & 사이즈 조절)</h3>
+            <div class="crop-container mb-4">
                 <img id="cropTarget" src="">
             </div>
-            <div class="flex justify-end gap-2 mt-4">
-                <button onclick="closeModal()" class="px-4 py-2 bg-gray-300 rounded">취소</button>
-                <button onclick="applyCrop()" class="px-4 py-2 bg-blue-600 text-white rounded">확인</button>
+            <div class="mb-6 space-y-2 px-2">
+                <div class="flex justify-between text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                    <span>축소 (50%)</span>
+                    <span>원본 (100%)</span>
+                    <span>확대 (150%)</span>
+                </div>
+                <input type="range" id="zoomSlider" min="0.5" max="1.5" step="0.001" value="1" oninput="handleZoom(this.value)">
+            </div>
+            <div class="flex items-center justify-end gap-4">
+                <div class="flex gap-2">
+                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 text-sm font-bold">취소</button>
+                    <button onclick="applyCrop()" class="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm font-bold">적용하기</button>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="max-w-[1300px] mx-auto space-y-4">
-        
-        <!-- 커스텀 설정 바 -->
         <div id="config-bar" class="bg-white p-3 border flex flex-wrap items-center justify-center gap-6 mb-4 text-xs font-bold text-gray-600 rounded">
             <div class="flex items-center gap-2">
                 <span>영역 색상</span>
@@ -218,49 +247,47 @@
                 <span>텍스트 색상</span>
                 <input type="color" value="#ffffff" class="color-picker-input" oninput="updateTheme('--text-light', this.value)">
             </div>
-            <div class="flex items-center gap-2">
-                <span>테두리 색상</span>
-                <input type="color" value="#ef4444" class="color-picker-input" oninput="updateTheme('--border-slot', this.value)">
+            <div class="flex items-center gap-2 border-l pl-4">
+                <span>배경 상단</span>
+                <input type="color" id="bgColorTop" value="#f3f4f6" class="color-picker-input" oninput="updateBackground('top')">
             </div>
             <div class="flex items-center gap-2">
-                <span>배경 색상</span>
-                <input type="color" value="#f3f4f6" class="color-picker-input" oninput="updateTheme('--body-bg', this.value)">
+                <span>배경 하단</span>
+                <input type="color" id="bgColorBottom" value="#f3f4f6" class="color-picker-input" oninput="updateBackground('bottom')">
             </div>
         </div>
 
-        <!-- 이미지로 저장될 영역 -->
         <div id="capture-area">
             <header class="bg-dark-custom p-5 mb-4">
                 <div contenteditable="true" placeholder="캐릭터 이름 | 키cm | 기타내용" class="text-white text-2xl font-bold outline-none"></div>
             </header>
 
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-stretch">
-                <div class="flex flex-col gap-1">
-                    <div class="image-slot w-full shrink-0 mb-1" style="aspect-ratio: 484/602;" onclick="triggerUpload(this)">
+                <div class="flex flex-col gap-1" style="height: 920px;">
+                    <div class="image-slot head-slot w-full shrink-0 mb-1" style="height: 290px;" onclick="triggerUpload(this)">
                         <span class="guide-text text-sm">두상</span>
                         <input type="file" class="hidden" accept="image/*" onchange="openCropModal(this)">
                     </div>
 
                     <div class="grid grid-cols-4 gap-2 shrink-0 mb-1">
-                        <div class="color-text-set group-container">
+                        <div class="color-text-set">
                             <div class="color-swatch-container"><input type="color" value="#00ff00" class="color-picker-main" oninput="this.parentElement.style.backgroundColor = this.value"></div>
-                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[13px] text-center py-2 outline-none no-round"></div>
+                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[13px] text-center py-2 outline-none no-round" style="z-index: 1;"></div>
                         </div>
-                        <div class="color-text-set group-container">
+                        <div class="color-text-set">
                             <div class="color-swatch-container"><input type="color" value="#00ff00" class="color-picker-main" oninput="this.parentElement.style.backgroundColor = this.value"></div>
-                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[13px] text-center py-2 outline-none no-round"></div>
+                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[13px] text-center py-2 outline-none no-round" style="z-index: 1;"></div>
                         </div>
-                        <div class="color-text-set group-container">
+                        <div class="color-text-set">
                             <div class="color-swatch-container"><input type="color" value="#00ff00" class="color-picker-main" oninput="this.parentElement.style.backgroundColor = this.value"></div>
-                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[13px] text-center py-2 outline-none no-round"></div>
+                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[13px] text-center py-2 outline-none no-round" style="z-index: 1;"></div>
                         </div>
-                        <div class="color-text-set group-container">
+                        <div class="color-text-set">
                             <div class="color-swatch-container"><input type="color" value="#00ff00" class="color-picker-main" oninput="this.parentElement.style.backgroundColor = this.value"></div>
-                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[13px] text-center py-2 outline-none no-round"></div>
+                            <div contenteditable="true" placeholder="T" class="bg-dark-custom text-[13px] text-center py-2 outline-none no-round" style="z-index: 1;"></div>
                         </div>
                     </div>
 
-                    <!-- SD 세트 -->
                     <div class="flex flex-col shrink-0 mb-1 rounded overflow-hidden group-container">
                         <div contenteditable="true" placeholder="SD" class="top-text-bar no-round" style="height: 40px; font-size: 1rem;"></div>
                         <div class="image-slot image-slot-fill no-round" style="height: 228px;" onclick="triggerUpload(this)">
@@ -269,21 +296,20 @@
                         </div>
                     </div>
 
-                    <!-- 캐릭터 특징 세트 -->
                     <div class="flex flex-col flex-grow rounded overflow-hidden group-container">
                         <div contenteditable="true" placeholder="캐릭터 특징" class="top-text-bar no-round"></div>
-                        <div contenteditable="true" placeholder="특징을 입력하세요." class="bg-dark-custom p-3 text-sm outline-none flex-grow min-h-[100px] no-round"></div>
+                        <div contenteditable="true" placeholder="특징을 입력하세요." class="bg-dark-custom p-3 text-sm outline-none flex-grow no-round"></div>
                     </div>
                 </div>
 
-                <div class="md:col-span-2">
-                    <div class="image-slot w-full h-[950px]" onclick="triggerUpload(this)">
+                <div class="md:col-span-2 relative">
+                    <div class="image-slot full-body-slot w-full h-[920px]" onclick="triggerUpload(this)">
                         <span class="guide-text text-3xl">전신</span>
                         <input type="file" class="hidden" accept="image/*" onchange="openCropModal(this)">
                     </div>
                 </div>
 
-                <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-4" style="height: 920px;">
                     <div class="flex flex-col bg-dark-custom overflow-hidden shrink-0 rounded group-container">
                         <div contenteditable="true" placeholder="동물화" class="top-text-bar no-round"></div>
                         <div class="image-slot image-slot-fill h-52 no-round" onclick="triggerUpload(this)">
@@ -295,7 +321,7 @@
 
                     <div class="flex flex-col bg-dark-custom flex-grow overflow-hidden shrink-0 rounded group-container">
                         <div contenteditable="true" placeholder="MD" class="top-text-bar no-round"></div>
-                        <div class="image-slot image-slot-fill flex-grow no-round" onclick="triggerUpload(this)">
+                        <div class="image-slot image-slot-fill h-[476px] no-round" onclick="triggerUpload(this)">
                             <span class="guide-text text-sm">MD</span>
                             <input type="file" class="hidden" accept="image/*" onchange="openCropModal(this)">
                         </div>
@@ -315,22 +341,42 @@
     <script>
         let currentSlot = null;
         let cropper = null;
+        let baseRatio = 1;
+        let isBottomManual = false; // 하단 색상을 수동으로 변경했는지 여부
 
         function updateTheme(variable, value) {
             document.documentElement.style.setProperty(variable, value);
-            if (variable === '--body-bg') {
-                document.getElementById('capture-area').style.backgroundColor = value;
-            }
             if (variable === '--bg-dark') {
-                document.querySelectorAll('.group-container').forEach(el => {
+                document.querySelectorAll('.group-container, .color-text-set, .image-slot-fill').forEach(el => {
                     el.style.backgroundColor = value;
+                    if (el.classList.contains('color-text-set')) { el.style.borderColor = value; }
                 });
             }
         }
 
-        function triggerUpload(element) {
-            element.querySelector('input[type="file"]').click();
+        function updateBackground(source) {
+            const topInput = document.getElementById('bgColorTop');
+            const bottomInput = document.getElementById('bgColorBottom');
+
+            if (source === 'top') {
+                // 하단 색상을 수동으로 만지지 않았다면 상단 색상을 따라가게 함 (단색 모드)
+                if (!isBottomManual) {
+                    bottomInput.value = topInput.value;
+                }
+            } else if (source === 'bottom') {
+                // 하단 색상을 직접 선택하면 수동 모드로 전환
+                isBottomManual = true;
+            }
+
+            const top = topInput.value;
+            const bottom = bottomInput.value;
+            document.documentElement.style.setProperty('--body-bg-top', top);
+            document.documentElement.style.setProperty('--body-bg-bottom', bottom);
+            document.body.style.backgroundColor = top;
         }
+
+        function triggerUpload(element) { element.querySelector('input[type="file"]').click(); }
+        function handleZoom(value) { if (cropper) { cropper.zoomTo(baseRatio * parseFloat(value)); } }
 
         function openCropModal(input) {
             if (input.files && input.files[0]) {
@@ -341,15 +387,34 @@
                     const image = document.getElementById('cropTarget');
                     image.src = e.target.result;
                     modal.style.display = 'flex';
-
                     const rect = currentSlot.getBoundingClientRect();
                     const aspectRatio = rect.width / rect.height;
-
                     if (cropper) cropper.destroy();
+                    document.getElementById('zoomSlider').value = 1;
                     cropper = new Cropper(image, {
                         aspectRatio: aspectRatio,
-                        viewMode: 1,
+                        viewMode: 0,
                         autoCropArea: 1,
+                        zoomable: true,
+                        movable: true,
+                        background: true,
+                        ready: function() {
+                            const canvasData = cropper.getCanvasData();
+                            baseRatio = canvasData.width / canvasData.naturalWidth;
+                        },
+                        zoom: function(e) {
+                            const currentRatio = e.detail.ratio / baseRatio;
+                            const slider = document.getElementById('zoomSlider');
+                            if (currentRatio < 0.5) {
+                                e.preventDefault();
+                                cropper.zoomTo(baseRatio * 0.5);
+                                slider.value = 0.5;
+                            } else if (currentRatio > 1.5) {
+                                e.preventDefault();
+                                cropper.zoomTo(baseRatio * 1.5);
+                                slider.value = 1.5;
+                            } else { slider.value = currentRatio; }
+                        }
                     });
                 };
                 reader.readAsDataURL(input.files[0]);
@@ -361,7 +426,6 @@
             if (!cropper) return;
             const canvas = cropper.getCroppedCanvas();
             const croppedDataUrl = canvas.toDataURL();
-
             let img = currentSlot.querySelector('img');
             if (!img) {
                 img = document.createElement('img');
@@ -370,30 +434,45 @@
                 if (span) span.style.display = 'none';
             }
             img.src = croppedDataUrl;
+            currentSlot.classList.add('has-image');
             closeModal();
         }
 
         function closeModal() {
             document.getElementById('cropModal').style.display = 'none';
-            if (cropper) {
-                cropper.destroy();
-                cropper = null;
-            }
+            if (cropper) { cropper.destroy(); cropper = null; }
         }
 
         async function saveAsImage() {
             const captureArea = document.getElementById('capture-area');
+            const top = getComputedStyle(document.documentElement).getPropertyValue('--body-bg-top');
+            const bottom = getComputedStyle(document.documentElement).getPropertyValue('--body-bg-bottom');
+            
             try {
                 const canvas = await html2canvas(captureArea, {
-                    backgroundColor: getComputedStyle(document.documentElement).getPropertyValue('--body-bg'),
+                    backgroundColor: null, 
                     scale: 2, 
                     useCORS: true,
                     logging: false,
                     onclone: (clonedDoc) => {
-                        // 저장용 이미지에서만 모든 텍스트 요소를 위로 4px 보정
+                        const clonedArea = clonedDoc.getElementById('capture-area');
+                        clonedArea.style.background = `linear-gradient(to bottom, ${top} 0%, ${bottom} 100%)`;
+                        
                         const textElements = clonedDoc.querySelectorAll('header div, .top-text-bar, .bottom-desc-bar, [contenteditable]');
-                        textElements.forEach(el => {
-                            el.style.transform = 'translateY(-4px)';
+                        textElements.forEach(el => { el.style.transform = 'translateY(-8px)'; });
+                        
+                        const colorSets = clonedDoc.querySelectorAll('.color-text-set');
+                        const darkColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-dark');
+                        colorSets.forEach(set => {
+                            set.style.backgroundColor = darkColor;
+                            set.style.borderColor = darkColor;
+                        });
+
+                        const slots = clonedDoc.querySelectorAll('.image-slot.has-image');
+                        slots.forEach(slot => {
+                            slot.style.border = 'none';
+                            slot.style.overflow = 'hidden';
+                            slot.style.borderRadius = '15px';
                         });
                     }
                 });
@@ -401,9 +480,7 @@
                 link.download = 'nuts_sheet_' + new Date().getTime() + '.png';
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-            } catch (error) {
-                console.error('저장 실패:', error);
-            }
+            } catch (error) { console.error('저장 실패:', error); }
         }
     </script>
 </body>
